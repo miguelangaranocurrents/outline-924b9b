@@ -82,7 +82,10 @@ function PinnedDocuments({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100,
+        // A hold longer than this starts a drag; it must stay comfortably
+        // above a brief click-and-hold so releasing the mouse still opens
+        // the document.
+        delay: 500,
         tolerance: 5,
       },
     }),

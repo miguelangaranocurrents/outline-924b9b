@@ -342,44 +342,41 @@ function MultiplayerEditor(
   }
 
   // while the collaborative document is loading, we render a version of the
-  // document from the last text cache in read-only mode if we have it.
+  // document from the last text cache in read-only mode if we have it. Only
+  // one of the two editors is mounted at a time so the document is never
+  // rendered twice in the DOM while the cache is showing.
   const isLocalReady = !hasLocalPersistence || isLocalSynced;
   const showCache =
     !isLocalReady && !isRemoteSynced && hasContent(props.defaultValue);
 
-  return (
-    <>
-      {showCache && (
-        <Editor
-          editorStyle={props.editorStyle}
-          embedsDisabled={props.embedsDisabled}
-          defaultValue={props.defaultValue}
-          extensions={props.extensions}
-          scrollTo={props.scrollTo}
-          headingPrefix={props.headingPrefix}
-          cacheOnly
-          readOnly
-          ref={ref}
-        />
-      )}
+  if (showCache) {
+    return (
       <Editor
-        {...props}
-        readOnly={props.readOnly || editorVersionBehind}
-        value={undefined}
-        defaultValue={undefined}
-        extensions={extensions}
-        ref={showCache ? undefined : ref}
-        style={
-          showCache
-            ? {
-                height: 0,
-                opacity: 0,
-              }
-            : undefined
-        }
-        className={showCursorNames ? "show-cursor-names" : undefined}
+        key="cache"
+        editorStyle={props.editorStyle}
+        embedsDisabled={props.embedsDisabled}
+        defaultValue={props.defaultValue}
+        extensions={props.extensions}
+        scrollTo={props.scrollTo}
+        headingPrefix={props.headingPrefix}
+        cacheOnly
+        readOnly
+        ref={ref}
       />
-    </>
+    );
+  }
+
+  return (
+    <Editor
+      key="collab"
+      {...props}
+      readOnly={props.readOnly || editorVersionBehind}
+      value={undefined}
+      defaultValue={undefined}
+      extensions={extensions}
+      ref={ref}
+      className={showCursorNames ? "show-cursor-names" : undefined}
+    />
   );
 }
 

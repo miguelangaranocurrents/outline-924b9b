@@ -1,6 +1,6 @@
 import type Model from "../base/Model";
 
-const fields = new Map<string, (string | number | symbol)[]>();
+const fields = new WeakMap<object, (string | number | symbol)[]>();
 
 /**
  * Returns the keys recorded as serializable fields on a model.
@@ -14,11 +14,15 @@ export const getFieldsForModel = <T extends Model>(target: T) =>
 /**
  * Returns the keys recorded as serializable fields on a model class.
  *
+ * Fields are keyed by the class itself rather than by its `name`, which
+ * is minified in production builds and can collide between unrelated
+ * model classes.
+ *
  * @param model the model class to inspect.
  * @returns the keys decorated with @Field.
  */
-export function getFieldsForModelClass(model: { name: string }) {
-  return fields.get(model.name) ?? [];
+export function getFieldsForModelClass(model: object) {
+  return fields.get(model) ?? [];
 }
 
 /**
@@ -29,8 +33,8 @@ export function getFieldsForModelClass(model: { name: string }) {
  * @param propertyKey the key to record as a field.
  */
 const Field = (target: Model, propertyKey: string | symbol) => {
-  const className = target.constructor.name;
-  fields.set(className, [...(fields.get(className) ?? []), propertyKey]);
+  const modelClass = target.constructor;
+  fields.set(modelClass, [...(fields.get(modelClass) ?? []), propertyKey]);
 };
 
 export default Field;
